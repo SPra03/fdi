@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Downloader</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dataset Downloader</h1>
+    <p>Enter your ODC key:</p>
+    <input type="text" id="odcKeyInput" placeholder="Enter ODC key">
+    <input type="text" id="DatasetName" placeholder="Enter ODC dataset">
+    <button id="downloadButton">Download Dataset</button>
+
+    <script>
+        document.getElementById("downloadButton").addEventListener("click", function() {
+            // Get the ODC key from the input field
+            const odcKey = document.getElementById("odcKeyInput").value;
+            const odcDataset = document.getElementById("DatasetName").value;
+
+            if (!odcKey) {
+                alert("Please enter your ODC key.");
+                return;
+            }
+
+            // Set your dataset name here or dynamically if needed
+            const datasetName = "odc-sci_851";
+
+            // Create a FormData object to send the odc_key as a POST parameter
+            const formData = new FormData();
+            formData.append("dataset_name", datasetName);
+            formData.append("odc_key", odcKey);
+
+            // Create a POST request with the dataset name in the URL as a query parameter
+            fetch(`http://localhost:8000/process_and_download/${datasetName}?odc_key=${odcKey}`, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    return response.blob();
+                } else {
+                    throw new Error("Failed to download dataset");
+                }
+            })
+            .then(blob => {
+                // Create a temporary link to trigger the download
+                const a = document.createElement("a");
+                const url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = datasetName + "_data_package.zip"; // Use the dynamic dataset name
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        });
+    </script>
+</body>
+</html>
